@@ -157,7 +157,7 @@ async def select_wallet(queue, tasks_num):
         await queue.put(wallet)
         return wallet
     elif not queue.empty():
-        random_number = random.randint(1, tasks_num)
+        random_number = random.randint(1, tasks_num*2)
         q_size: int = queue.qsize()
         # print(f'queue not empty: {queue}')
         queue.get_nowait()  # get wallet just to put it out of queue
@@ -239,10 +239,13 @@ async def activity(queue, tasks_num):
                 continue
 
             if action == 'Insufficient balance':
-                logger.error(f'{wallet.address}: Insufficient balance')
+                logger.error(f'{wallet}: Insufficient balance')
                 if settings.use_autorefill:
-                    controller.testnet_bridge.bridge(client=client)
-                update_next_action_time(private_key=wallet.private_key, seconds=DELAY_IN_CASE_OF_ERROR)
+                    logger.info(f'STARTING REFILL {wallet}')
+                    refill_result = await controller.testnet_bridge.bridge()
+                    if 'ETH was bridged to Sepolia' in refill_result:
+                        logger.success(f'{wallet} : succesfully refilled {refill_result}')
+                update_next_action_time(private_key=wallet.private_key, seconds=300)
                 # wallet.insufficient_balance = True
                 # db.commit()
                 continue

@@ -12,8 +12,8 @@ from tasks.base import Base
 
 
 class Testnet_Bridge(Base):
-    @staticmethod
-    async def get_price_seth(client: Client,
+
+    async def get_price_seth(self, #client: Client,
                              amount_eth: TokenAmount | None = None,
                              slippage: float = 5) -> int | None:
         headers = {
@@ -51,12 +51,12 @@ class Testnet_Bridge(Base):
                         "MIXED"
                     ],
                     "routingType": "CLASSIC",
-                    "recipient": client.account.address,
+                    "recipient": self.client.account.address,
                     "enableFeeOnTransferFeeFetching": 'true'
                 }
             ],
             "useUniswapX": 'true',
-            "swapper": client.account.address,
+            "swapper": self.client.account.address,
             "slippageTolerance": str(slippage)
         }
         response = await async_post(url='https://interface.gateway.uniswap.org/v2/quote',
@@ -64,15 +64,15 @@ class Testnet_Bridge(Base):
         seth_price = response['quote']['quoteGasAndPortionAdjusted']
         return int(seth_price) # returns int in wei
 
-    async def bridge(self, client: Client,
+    async def bridge(self, # client: Client,
                             # amount_eth: TokenAmount,
                             slippage: float = 5) -> str | None:
         settings = Settings()
         amount_eth = TokenAmount(random.uniform(settings.autorefill_amount.from_, settings.autorefill_amount.to_))
-        seth_amount = await Testnet_Bridge.get_price_seth(client=client, amount_eth=amount_eth, slippage=slippage)
+        seth_amount = await Testnet_Bridge.get_price_seth(self, amount_eth=amount_eth, slippage=slippage)
         failed_text = f'Failed to bridge {amount_eth} ETH to Sepolia via Testnet Bridge'
-        op_client = Client(private_key=client.account.key, network=Networks.Optimism)
-        arb_client = Client(private_key=client.account.key, network=Networks.Arbitrum)
+        op_client = Client(private_key=self.client.account.key, network=Networks.Optimism)
+        arb_client = Client(private_key=self.client.account.key, network=Networks.Arbitrum)
         op_balance = await op_client.wallet.balance()
         arb_balance = await arb_client.wallet.balance()
 
@@ -104,6 +104,7 @@ class Testnet_Bridge(Base):
         )
 
         tx = await self.client.transactions.sign_and_send(tx_params=tx_params)
+        print(tx)
         receipt = await tx.wait_for_receipt(client=self.client, timeout=500)
         check_tx_error = await Base.check_tx(str(tx.hash))
         print(f'check_tx_error bridge eth: {check_tx_error.Error}')
