@@ -261,15 +261,15 @@ async def activity(queue, tasks_num):
                 db.commit()
                 logger.success(f'{wallet}: {status}')
 
-                if 'ETH was bridged to Hemi via official bridge' in status:
-                    update_today_activity(private_key=wallet.private_key, activity='depositETH')
-                if 'stablecoin was bridged to Hemi via official bridge' in status:
-                    update_today_activity(private_key=wallet.private_key, activity='depositERC20')
-                if 'swapped' in status:
-                    update_today_activity(private_key=wallet.private_key, activity='swaps')  # todo: change method name
-                if 'capsule' in status:
-                    update_today_activity(private_key=wallet.private_key,
-                                          activity='capsule')  # todo: change method name
+                # if 'ETH was bridged to Hemi via official bridge' in status:
+                #     update_today_activity(private_key=wallet.private_key, activity='depositETH')
+                # if 'stablecoin was bridged to Hemi via official bridge' in status:
+                #     update_today_activity(private_key=wallet.private_key, activity='depositERC20')
+                # if 'swapped' in status:
+                #     update_today_activity(private_key=wallet.private_key, activity='swaps')  # todo: change method name
+                # if 'capsule' in status:
+                #     update_today_activity(private_key=wallet.private_key,
+                #                           activity='capsule')  # todo: change method name
 
                 # Display next action time
                 stmt = (select(func.min(Wallet.next_action_time)).where(
